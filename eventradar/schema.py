@@ -63,6 +63,28 @@ def slugify_title(text: str) -> str:
     return text
 
 
+def clean_prize_pool(raw_prize: Any) -> str | None:
+    """Sanitize raw prize pool string, removing Python dict dumps."""
+    if not raw_prize:
+        return None
+    val = str(raw_prize).strip()
+    if not val or val.lower() == "none":
+        return None
+    if val.startswith("{") or "cash" in val.lower():
+        match = re.search(r"['\"]?cash['\"]?\s*:\s*(\d+)", val, re.I)
+        if match:
+            try:
+                amt = int(match.group(1))
+                return f"₹{amt:,}"
+            except ValueError:
+                pass
+        match_amt = re.search(r"(\d[\d,]{3,})", val)
+        if match_amt:
+            return f"₹{match_amt.group(1)}"
+        return None
+    return val
+
+
 def parse_date(raw: Any) -> str | None:
     """
     Best-effort ISO date (YYYY-MM-DD) from a variety of input formats.
@@ -189,7 +211,8 @@ def normalize_event(raw: dict[str, Any]) -> dict[str, Any] | None:
     ev["registration_deadline"] = parse_date(raw.get("registration_deadline"))
 
     # ── prize_pool ──
-    ev["prize_pool"] = str(raw.get("prize_pool") or "").strip() or None
+    raw_prize = raw.get("prize_pool")
+    ev["prize_pool"] = clean_prize_pool(raw_prize)
 
     # ── organizer ──
     ev["organizer"] = str(raw.get("organizer") or "").strip() or None

@@ -48,7 +48,20 @@ def _parse_data(data: Any) -> list[dict]:
         prizes = item.get("prizes") or []
         prize_pool = None
         if isinstance(prizes, list) and prizes:
-            prize_pool = str(prizes[0]) if prizes else None
+            p0 = prizes[0]
+            if isinstance(p0, dict):
+                cash = p0.get("cash") or p0.get("amount")
+                curr = str(p0.get("currency") or "").lower()
+                curr_sym = "₹" if "rupee" in curr or "inr" in curr or not curr else "$"
+                if cash:
+                    try:
+                        prize_pool = f"{curr_sym}{int(float(cash)):,}"
+                    except (ValueError, TypeError):
+                        prize_pool = f"{curr_sym}{cash}"
+                elif p0.get("others"):
+                    prize_pool = str(p0["others"])[:100]
+            elif isinstance(p0, (str, int, float)):
+                prize_pool = str(p0)
 
         # Mode detection
         location = str(item.get("type") or item.get("location_type") or "").lower()

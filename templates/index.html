@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EventRadar 🎯 — Tech, Founder & Networking Events</title>
+  <title>EventRadar 🧭 — Tech, Founder & Networking Events</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -368,7 +369,7 @@
   <header>
     <div class="brand">
       <div class="title-group">
-        <h1>EventRadar 🎯</h1>
+        <h1>EventRadar 🧭</h1>
         <p>Tech, Founder & Networking Events for Hyderabad, India & Global</p>
       </div>
       <button class="run-btn" id="triggerRunBtn" onclick="runScraper()">
@@ -475,7 +476,7 @@
 
         grid.innerHTML = data.events.map(ev => {
           const dateStr = ev.start_date ? new Date(ev.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBA';
-          const prizeStr = ev.prize_pool ? `🏆 ${ev.prize_pool}` : '';
+          const prizeStr = cleanPrize(ev.prize_pool);
           const tagsHtml = (ev.tags || []).slice(0, 4).map(t => `<span class="tag">#${t}</span>`).join('');
           
           return `
@@ -491,7 +492,7 @@
                   <div class="meta-item"><span class="meta-icon">📅</span> ${dateStr}</div>
                   ${ev.venue ? `<div class="meta-item"><span class="meta-icon">📍</span> ${escapeHtml(ev.venue)}</div>` : ''}
                   ${ev.organizer ? `<div class="meta-item"><span class="meta-icon">👤</span> ${escapeHtml(ev.organizer)}</div>` : ''}
-                  ${prizeStr ? `<div class="meta-item" style="color: #fbbf24;">${prizeStr}</div>` : ''}
+                  ${prizeStr ? `<div class="meta-item" style="color: #fbbf24; font-weight: 600;">${escapeHtml(prizeStr)}</div>` : ''}
                 </div>
                 <div class="tags-container">${tagsHtml}</div>
               </div>
@@ -505,6 +506,23 @@
       } catch (e) {
         grid.innerHTML = '<div class="empty-state">Failed to load events.</div>';
       }
+    }
+
+    function cleanPrize(prize) {
+      if (!prize || prize === 'None') return '';
+      prize = String(prize).trim();
+      if (prize.startsWith('{') || prize.toLowerCase().includes('cash')) {
+        const cashMatch = prize.match(/['"]?cash['"]?\s*:\s*(\d+)/i);
+        if (cashMatch) {
+          return '🏆 ₹' + parseInt(cashMatch[1]).toLocaleString();
+        }
+        const numMatch = prize.match(/(\d[\d,]{3,})/);
+        if (numMatch) {
+          return '🏆 ₹' + numMatch[1];
+        }
+        return '';
+      }
+      return prize.startsWith('🏆') ? prize : '🏆 ' + prize;
     }
 
     function setFilter(el) {
