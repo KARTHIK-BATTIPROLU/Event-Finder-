@@ -1,0 +1,14 @@
+# ── Core (required, zero API keys needed) ──────────────────────────────────────
+Flask>=3.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+pymongo>=4.6.0
+python-dotenv>=1.0.0
+
+# ── Production WSGI (optional, for non-serverless deployments) ───────────────
+gunicorn>=21.2.0
+
+# ── Optional LLM backends (install only what you use) ──────────────────────────
+# google-generativeai>=0.5.0   # for GEMINI_API_KEY
+# openai>=1.20.0               # for OPENAI_API_KEY
+# anthropic>=0.23.0            # for ANTHROPIC_API_KEY
